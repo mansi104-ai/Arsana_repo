@@ -3,11 +3,8 @@ name: Sync to Bot Repository
 on:
   push:
     branches:
-      - main  # Change this to your source branch if different
+      - main
   workflow_dispatch:
-
-permissions:
-  contents: write
 
 jobs:
   sync:
@@ -19,26 +16,27 @@ jobs:
           persist-credentials: false
           fetch-depth: 0
 
-      - name: Set up GitHub credentials
-        run: |
-          git config --global user.name "github-actions[bot]"
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-      - name: Push to bot repository
+      - name: Configure Git
         env:
-          PAT_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
+          GITHUB_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
         run: |
-          # Remove any existing remote named 'bot-repo' if it exists
+          git config --global user.name "mansi104-ai"
+          git config --global user.email "mkb.kalra@gmail.com"
+          
+          # Ensure old remote is removed
           git remote remove bot-repo 2>/dev/null || true
           
-          # Add the bot repository as a remote
-          echo "Adding bot repository remote..."
-          git remote add bot-repo "https://${{ secrets.API_TOKEN_GITHUB }}@github.com/mansi104-ai/bot_repo.git"
+          # Create the remote URL with explicit token
+          REMOTE_URL="https://${{ secrets.API_TOKEN_GITHUB}}@github.com/mansi104-ai/bot_repo.git"
           
-          # Fetch from bot repository
+          echo "Adding bot repository remote..."
+          git remote add bot-repo "$REMOTE_URL"
+          
           echo "Fetching from bot repository..."
           git fetch bot-repo
           
-          # Push to bot repository
+          echo "Current branch status:"
+          git branch -a
+          
           echo "Pushing to bot repository..."
-          git push -f bot-repo main:main
+          git push -f "https://${{ secrets.API_TOKEN_GITHUB}}@github.com/mansi104-ai/bot_repo.git" main:main
