@@ -1,0 +1,33 @@
+name: Sync Repositories
+
+on:
+  # Trigger on push to main branch
+  push:
+    branches:
+      - main
+  # Optional: Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  sync-repositories:
+    name: Sync repositories
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Push to destination repository
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        run: |
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # Add the destination repository as a remote
+          git remote add destination https://${API_TOKEN_GITHUB}@github.com/mansi104-ai/bot_repo.git
+          
+          # Push to the destination repository
+          git push destination main:main --force
