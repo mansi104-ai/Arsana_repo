@@ -1,44 +1,44 @@
-name: Sync Repositories
+name: Sync to Bot Repository
 
 on:
   push:
     branches:
-      - main
+      - main  # Change this to your source branch if different
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
-  test-and-sync:
-    name: Test and Sync repositories
+  sync:
     runs-on: ubuntu-latest
-    
     steps:
       - name: Checkout source repository
         uses: actions/checkout@v3
         with:
+          persist-credentials: false
           fetch-depth: 0
-          token: ${{ secrets.API_TOKEN_GITHUB }}  # Use PAT for checkout
-      
-      # Rest of the setup and test steps remain the same...
-      
-      - name: Push to destination repository
-        if: success() && steps.repo-state.outcome == 'success'
+
+      - name: Set up GitHub credentials
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Push to bot repository
+        env:
+          PAT_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
+        run: |
+          # Remove any existing remote named 'bot-repo' if it exists
+          git remote remove bot-repo 2>/dev/null || true
           
-          # Use PAT in the remote URL
-          git remote add destination https://${{ secrets.API_TOKEN_GITHUB }}@github.com/mansi104-ai/bot_repo.git
+          # Add the bot repository as a remote
+          echo "Adding bot repository remote..."
+          git remote add bot-repo "https://${{ secrets.API_TOKEN_GITHUB }}@github.com/mansi104-ai/bot_repo.git"
           
-          # Verify remote was added
-          if ! git remote -v | grep -q destination; then
-            echo "Failed to verify destination remote"
-            exit 1
-          fi
+          # Fetch from bot repository
+          echo "Fetching from bot repository..."
+          git fetch bot-repo
           
-          # Try to push with error handling
-          if ! git push destination main:main --force; then
-            echo "Failed to push to destination repository"
-            exit 1
-          fi
-          
-          echo "Successfully synced repositories"
+          # Push to bot repository
+          echo "Pushing to bot repository..."
+          git push -f bot-repo main:main
