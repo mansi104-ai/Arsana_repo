@@ -12,31 +12,11 @@ jobs:
     steps:
       - name: Checkout source repository
         uses: actions/checkout@v3
-        with:
-          persist-credentials: false
-          fetch-depth: 0
 
-      - name: Configure Git
-        env:
-          GITHUB_TOKEN: ${{ secrets.API_TOKEN_GITHUB }}
-        run: |
-          git config --global user.name "mansi104-ai"
-          git config --global user.email "mkb.kalra@gmail.com"
-          
-          # Ensure old remote is removed
-          git remote remove bot-repo 2>/dev/null || true
-          
-          # Create the remote URL with explicit token
-          REMOTE_URL="https://${{ secrets.API_TOKEN_GITHUB}}@github.com/mansi104-ai/bot_repo.git"
-          
-          echo "Adding bot repository remote..."
-          git remote add bot-repo "$REMOTE_URL"
-          
-          echo "Fetching from bot repository..."
-          git fetch bot-repo
-          
-          echo "Current branch status:"
-          git branch -a
-          
-          echo "Pushing to bot repository..."
-          git push -f "https://${{ secrets.API_TOKEN_GITHUB}}@github.com/mansi104-ai/bot_repo.git" main:main
+      - name: Push to bot repository
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.API_TOKEN_GITHUB }}
+          branch: main
+          repository: mansi104-ai/bot_repo
+          force: true
