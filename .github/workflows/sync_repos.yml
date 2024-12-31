@@ -37,6 +37,16 @@ jobs:
           
           echo "Current branch status:"
           git branch -a
+
+          # Create a temporary branch without workflows
+          git branch temp-branch
+          git checkout temp-branch
+          git rm -r --cached .github/workflows
+          git commit -m "Remove workflows for sync"
           
           echo "Pushing to bot repository..."
-          git push -f "https://${{ secrets.API_TOKEN_GITHUB}}@github.com/mansi104-ai/bot_repo.git" main:main
+          git push -f "https://${{ secrets.API_TOKEN_GITHUB}}@github.com/mansi104-ai/bot_repo.git" temp:main
+
+          # Clean up
+          git checkout main
+          git branch -D temp-branch
